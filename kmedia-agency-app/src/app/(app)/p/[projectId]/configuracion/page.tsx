@@ -48,26 +48,19 @@ export default async function ConfiguracionPage({
           <div className="grid grid-cols-2 gap-4">
             <Input label="Año" name="year" type="number" defaultValue={project.year} required />
             <Input
-              label="Yappy utilizado"
-              name="yappy_number"
-              defaultValue={project.yappy_number ?? ""}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input
               label="Fecha de inicio"
               name="start_date"
               type="date"
               defaultValue={project.start_date}
               required
             />
-            <Input
-              label="Fecha de finalización"
-              name="end_date"
-              type="date"
-              defaultValue={project.end_date ?? ""}
-            />
           </div>
+          <Input
+            label="Fecha de finalización"
+            name="end_date"
+            type="date"
+            defaultValue={project.end_date ?? ""}
+          />
 
           <div className="border-t border-slate-200 pt-4">
             <p className="mb-3 text-sm font-medium text-slate-700">
