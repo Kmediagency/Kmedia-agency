@@ -247,13 +247,7 @@ export async function GET(
       );
 
       const cashConfirmed = (dayMovements ?? [])
-        .filter((m) => m.method === "cash" && isMovementCollected(m.status))
-        .reduce((sum, m) => sum + m.amount, 0);
-      const yappyConfirmed = (dayMovements ?? [])
-        .filter((m) => m.method === "yappy" && isMovementCollected(m.status))
-        .reduce((sum, m) => sum + m.amount, 0);
-      const yappyPending = (dayMovements ?? [])
-        .filter((m) => m.method === "yappy" && m.status === "pending_reconciliation")
+        .filter((m) => isMovementCollected(m.status))
         .reduce((sum, m) => sum + m.amount, 0);
 
       addSheet(wb, "Resumen", [
@@ -264,9 +258,7 @@ export async function GET(
         { Indicador: "Ausentes", Valor: absentToday.length },
         { Indicador: "No participantes", Valor: notParticipatingToday.length },
         { Indicador: "Cobrado efectivo", Valor: cashConfirmed },
-        { Indicador: "Cobrado Yappy conciliado", Valor: yappyConfirmed },
-        { Indicador: "Yappy pendiente de conciliación", Valor: yappyPending },
-        { Indicador: "Total confirmado del día", Valor: cashConfirmed + yappyConfirmed },
+        { Indicador: "Total confirmado del día", Valor: cashConfirmed },
       ]);
 
       addSheet(
