@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import {
   createExtra,
   createPackage,
+  deleteExtra,
+  deletePackage,
   toggleExtraActive,
   togglePackageActive,
 } from "./actions";
@@ -55,11 +57,18 @@ export default async function PaquetesPage({
                   )}
                 </div>
               </div>
-              <form action={togglePackageActive.bind(null, projectId, pkg.id, !pkg.active)}>
-                <button type="submit" className="text-xs text-brand-600 hover:underline">
-                  {pkg.active ? "Desactivar" : "Activar"}
-                </button>
-              </form>
+              <div className="flex items-center gap-3">
+                <form action={togglePackageActive.bind(null, projectId, pkg.id, !pkg.active)}>
+                  <button type="submit" className="text-xs text-brand-600 hover:underline">
+                    {pkg.active ? "Desactivar" : "Activar"}
+                  </button>
+                </form>
+                <form action={deletePackage.bind(null, projectId, pkg.id)}>
+                  <button type="submit" className="text-xs text-status-danger hover:underline">
+                    Eliminar
+                  </button>
+                </form>
+              </div>
             </li>
           ))}
           {(!packages || packages.length === 0) && (
@@ -104,11 +113,18 @@ export default async function PaquetesPage({
                 <span className="ml-2 text-slate-500">${extra.price.toFixed(2)}</span>
                 {!extra.active && <Badge tone="neutral">Inactivo</Badge>}
               </div>
-              <form action={toggleExtraActive.bind(null, projectId, extra.id, !extra.active)}>
-                <button type="submit" className="text-xs text-brand-600 hover:underline">
-                  {extra.active ? "Desactivar" : "Activar"}
-                </button>
-              </form>
+              <div className="flex items-center gap-3">
+                <form action={toggleExtraActive.bind(null, projectId, extra.id, !extra.active)}>
+                  <button type="submit" className="text-xs text-brand-600 hover:underline">
+                    {extra.active ? "Desactivar" : "Activar"}
+                  </button>
+                </form>
+                <form action={deleteExtra.bind(null, projectId, extra.id)}>
+                  <button type="submit" className="text-xs text-status-danger hover:underline">
+                    Eliminar
+                  </button>
+                </form>
+              </div>
             </li>
           ))}
           {(!extras || extras.length === 0) && (
