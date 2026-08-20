@@ -79,6 +79,25 @@ export async function togglePackageActive(projectId: string, packageId: string, 
   revalidatePath(`/p/${projectId}/paquetes`);
 }
 
+/**
+ * Elimina un paquete. Si hay estudiantes con este paquete asignado, la base
+ * de datos rechaza el borrado (integridad referencial) y mostramos un
+ * mensaje claro en vez de perder datos de estudiantes silenciosamente.
+ */
+export async function deletePackage(projectId: string, packageId: string) {
+  const supabase = createClient();
+  const { error } = await supabase.from("packages").delete().eq("id", packageId);
+  if (error) {
+    if (error.code === "23503") {
+      throw new Error(
+        "No se puede eliminar: hay estudiantes con este paquete asignado. Desactivalo en su lugar."
+      );
+    }
+    throw new Error(error.message);
+  }
+  revalidatePath(`/p/${projectId}/paquetes`);
+}
+
 // ---------- Extras ----------
 
 const extraSchema = z.object({
@@ -103,5 +122,23 @@ export async function toggleExtraActive(projectId: string, extraId: string, acti
   const supabase = createClient();
   const { error } = await supabase.from("extras").update({ active }).eq("id", extraId);
   if (error) throw new Error(error.message);
+  revalidatePath(`/p/${projectId}/paquetes`);
+}
+
+/**
+ * Elimina un extra. Si algun estudiante ya lo tiene seleccionado, la base
+ * de datos rechaza el borrado y mostramos un mensaje claro.
+ */
+export async function deleteExtra(projectId: string, extraId: string) {
+  const supabase = createClient();
+  const { error } = await supabase.from("extras").delete().eq("id", extraId);
+  if (error) {
+    if (error.code === "23503") {
+      throw new Error(
+        "No se puede eliminar: hay estudiantes con este extra seleccionado. Desactivalo en su lugar."
+      );
+    }
+    throw new Error(error.message);
+  }
   revalidatePath(`/p/${projectId}/paquetes`);
 }
