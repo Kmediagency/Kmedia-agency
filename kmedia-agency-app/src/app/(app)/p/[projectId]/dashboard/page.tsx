@@ -69,17 +69,6 @@ export default async function DashboardPage({ params }: { params: { projectId: s
     .filter((m) => isMovementCollected(m.status) && m.payment_date === today)
     .reduce((sum, m) => sum + m.amount, 0);
 
-  // ---- Método de pago ----
-  const efectivoConfirmado = (movements ?? [])
-    .filter((m) => m.method === "cash" && isMovementCollected(m.status))
-    .reduce((sum, m) => sum + m.amount, 0);
-  const yappyConciliado = (movements ?? [])
-    .filter((m) => m.method === "yappy" && isMovementCollected(m.status))
-    .reduce((sum, m) => sum + m.amount, 0);
-  const yappyPendiente = (movements ?? [])
-    .filter((m) => m.method === "yappy" && m.status === "pending_reconciliation")
-    .reduce((sum, m) => sum + m.amount, 0);
-
   // ---- Colegio ----
   const totalGeneradoColegio = clubPadresGenerated + ninthGradeFundGenerated;
   const totalEntregado = (disbursements ?? []).reduce((sum, d) => sum + d.amount, 0);
@@ -139,15 +128,6 @@ export default async function DashboardPage({ params }: { params: { projectId: s
           <StatCard label="Pagados completos" value={pagadosCompletos} />
           <StatCard label="Pago parcial" value={pagoParcial} />
           <StatCard label="Morosos" value={morosos} />
-        </div>
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-sm font-medium text-slate-500">Método de pago</h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <StatCard label="Efectivo confirmado" value={`$${efectivoConfirmado.toFixed(2)}`} />
-          <StatCard label="Yappy conciliado" value={`$${yappyConciliado.toFixed(2)}`} />
-          <StatCard label="Yappy pendiente" value={`$${yappyPendiente.toFixed(2)}`} />
         </div>
       </section>
 
