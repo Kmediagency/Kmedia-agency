@@ -14,7 +14,7 @@ const paymentSchema = z.object({
   student_id: z.string().min(1, "Selecciona un estudiante"),
   amount: z.coerce.number().positive("El monto debe ser mayor a 0"),
   payment_date: z.string().min(1),
-  method: z.enum(["cash", "yappy"]),
+  method: z.enum(["cash"]),
   reference: z.string().optional(),
   observation: z.string().optional(),
 });
@@ -23,7 +23,8 @@ const paymentSchema = z.object({
  * Registra un movimiento de pago. Valida las reglas de cuotas antes de
  * guardar: la primera cuota debe cubrir 1/3 del paquete + el 100% de los
  * extras; las cuotas siguientes deben ser al menos 1/3 del paquete (o
- * completar el saldo restante, lo que sea menor).
+ * completar el saldo restante, lo que sea menor). Todos los pagos son en
+ * efectivo y quedan confirmados de inmediato.
  */
 export async function registerPayment(
   projectId: string,
@@ -34,7 +35,7 @@ export async function registerPayment(
     student_id: formData.get("student_id"),
     amount: formData.get("amount"),
     payment_date: formData.get("payment_date"),
-    method: formData.get("method"),
+    method: formData.get("method") || "cash",
     reference: formData.get("reference") || undefined,
     observation: formData.get("observation") || undefined,
   });
@@ -44,10 +45,6 @@ export async function registerPayment(
   }
 
   const { student_id, amount, payment_date, method, reference, observation } = parsed.data;
-
-  if (method === "yappy" && !reference) {
-    return { error: "La referencia de Yappy es obligatoria" };
-  }
 
   const supabase = createClient();
 
@@ -96,8 +93,6 @@ export async function registerPayment(
     }
   }
 
-  const status = method === "cash" ? "confirmed" : "pending_reconciliation";
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -109,9 +104,9 @@ export async function registerPayment(
     payment_date,
     method,
     reference: reference || null,
-    status,
+    status: "confirmed",
     observation: observation || null,
-    reconciled_at: method === "cash" ? new Date().toISOString() : null,
+    reconciled_at: new Date().toISOString(),
     created_by: user?.id,
   });
 
@@ -119,12 +114,11 @@ export async function registerPayment(
 
   revalidatePath(`/p/${projectId}/pagos`);
   revalidatePath(`/p/${projectId}/estudiantes/${student_id}`);
-  revalidatePath(`/p/${projectId}/conciliacion-yappy`);
   return { error: null };
 }
 
 /**
- * Revierte un pago creando un movimiento de corrección (monto negativo),
+ * Revierte un pago creando un movimiento de correccion (monto negativo),
  * nunca borra ni edita el movimiento original.
  */
 export async function reversePayment(projectId: string, movementId: string) {
@@ -150,7 +144,7 @@ export async function reversePayment(projectId: string, movementId: string) {
     method: original.method,
     reference: original.reference,
     status: original.status === "confirmed" ? "confirmed" : "rejected",
-    observation: "Corrección / reversa de pago",
+    observation: "Correccion / reversa de pago",
     reversal_of_id: original.id,
     created_by: user?.id,
   });
@@ -159,4 +153,19 @@ export async function reversePayment(projectId: string, movementId: string) {
 
   revalidatePath(`/p/${projectId}/pagos`);
   revalidatePath(`/p/${projectId}/estudiantes/${original.student_id}`);
+}
+
+/**
+ * Elimina permanentemente un movimiento de pago. Solo debe usarse para
+ * corregir un error de captura (ej. estudiante equivocado). Para anular un
+ * pago que si ocurrio, usar reversePayment en su lugar.
+ */
+export async function deletePaymentMovement(projectId: string, studentId: string, movementId: string) {
+  const supabase = createClient();
+  const { error } = await supabase.from("payment_movements").delete().eq("id", movementId);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/p/${projectId}/pagos`);
+  revalidatePath(`/p/${projectId}/estudiantes/${studentId}`);
 }
