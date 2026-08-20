@@ -12,7 +12,6 @@ const projectSettingsSchema = z.object({
   year: z.coerce.number().int().min(2020).max(2100),
   start_date: z.string().min(1),
   end_date: z.string().optional(),
-  yappy_number: z.string().optional(),
   installment_2_date: z.string().optional(),
   installment_3_date: z.string().optional(),
   final_due_date: z.string().optional(),
@@ -25,7 +24,6 @@ export async function updateProjectSettings(projectId: string, formData: FormDat
     year: formData.get("year"),
     start_date: formData.get("start_date"),
     end_date: formData.get("end_date") || undefined,
-    yappy_number: formData.get("yappy_number") || undefined,
     installment_2_date: formData.get("installment_2_date") || undefined,
     installment_3_date: formData.get("installment_3_date") || undefined,
     final_due_date: formData.get("final_due_date") || undefined,
@@ -80,11 +78,18 @@ export async function createGrade(projectId: string, formData: FormData) {
 export async function deleteGrade(projectId: string, gradeId: string) {
   const supabase = createClient();
   const { error } = await supabase.from("grades").delete().eq("id", gradeId);
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (error.code === "23503") {
+      throw new Error(
+        "No se puede eliminar: este grado tiene salones o estudiantes asociados."
+      );
+    }
+    throw new Error(error.message);
+  }
   revalidatePath(`/p/${projectId}/configuracion`);
 }
 
-// ---------- Salones ----------
+// ---------- Salones (usados tambien desde Jornadas) ----------
 
 export async function createClassroom(projectId: string, formData: FormData) {
   const gradeId = String(formData.get("grade_id") ?? "");
@@ -103,11 +108,37 @@ export async function createClassroom(projectId: string, formData: FormData) {
 
   if (error) throw new Error(error.message);
   revalidatePath(`/p/${projectId}/configuracion`);
+  revalidatePath(`/p/${projectId}/jornadas`);
+}
+
+export async function updateClassroomDate(
+  projectId: string,
+  classroomId: string,
+  formData: FormData
+) {
+  const photoDate = String(formData.get("photo_date") ?? "") || null;
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("classrooms")
+    .update({ photo_date: photoDate })
+    .eq("id", classroomId);
+
+  if (error) throw new Error(error.message);
+  revalidatePath(`/p/${projectId}/configuracion`);
+  revalidatePath(`/p/${projectId}/jornadas`);
 }
 
 export async function deleteClassroom(projectId: string, classroomId: string) {
   const supabase = createClient();
   const { error } = await supabase.from("classrooms").delete().eq("id", classroomId);
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (error.code === "23503") {
+      throw new Error(
+        "No se puede eliminar: este salón tiene estudiantes asignados. Muévelos a otro salón primero."
+      );
+    }
+    throw new Error(error.message);
+  }
   revalidatePath(`/p/${projectId}/configuracion`);
+  revalidatePath(`/p/${projectId}/jornadas`);
 }
