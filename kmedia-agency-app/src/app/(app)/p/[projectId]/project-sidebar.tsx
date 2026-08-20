@@ -4,11 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 /**
- * Solo se listan aquí los módulos ya implementados. A medida que avancen las
- * siguientes fases (jornadas, pagos, conciliación Yappy, reposiciones,
- * paquetes y extras, aportes al colegio, reportes, dashboard) se irán
- * agregando en este mismo arreglo — nunca un enlace que no lleve a algo
- * funcional.
+ * Solo se listan aqui los modulos ya implementados. A medida que avancen las
+ * siguientes fases se iran agregando en este mismo arreglo - nunca un enlace
+ * que no lleve a algo funcional.
  */
 function navItems(projectId: string) {
   return [
@@ -16,12 +14,11 @@ function navItems(projectId: string) {
     { href: `/p/${projectId}/estudiantes`, label: "Estudiantes" },
     { href: `/p/${projectId}/jornadas`, label: "Jornadas" },
     { href: `/p/${projectId}/pagos`, label: "Pagos" },
-    { href: `/p/${projectId}/conciliacion-yappy`, label: "Conciliación Yappy" },
     { href: `/p/${projectId}/reposiciones`, label: "Reposiciones" },
     { href: `/p/${projectId}/paquetes`, label: "Paquetes y Extras" },
     { href: `/p/${projectId}/aportes-colegio`, label: "Aportes al Colegio" },
     { href: `/p/${projectId}/reportes`, label: "Reportes" },
-    { href: `/p/${projectId}/configuracion`, label: "Configuración" },
+    { href: `/p/${projectId}/configuracion`, label: "Configuracion" },
   ];
 }
 
