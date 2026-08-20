@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardTitle } from "@/components/ui/card";
+import { Input, Select } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { createClassroom, deleteClassroom, updateClassroomDate } from "../configuracion/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -41,12 +44,40 @@ export default async function JornadasPage({ params }: { params: { projectId: st
   };
 
   return (
-    <div>
-      <h1 className="mb-6 text-lg font-semibold text-slate-900">Jornadas</h1>
+    <div className="space-y-6">
+      <h1 className="text-lg font-semibold text-slate-900">Jornadas</h1>
+
+      {/* Agregar jornada / salón, directamente desde esta pantalla */}
+      <Card>
+        <CardTitle className="mb-4">+ Agregar jornada (salón)</CardTitle>
+        {grades && grades.length > 0 ? (
+          <form
+            action={createClassroom.bind(null, projectId)}
+            className="flex flex-wrap items-end gap-3"
+          >
+            <Select name="grade_id" label="Grado" required className="max-w-[160px]">
+              {grades.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </Select>
+            <Input name="name" label="Salón" placeholder="Ej: 12A" required className="max-w-[140px]" />
+            <Input name="photo_date" label="Fecha de jornada" type="date" />
+            <Button type="submit" variant="secondary">
+              + Agregar salón
+            </Button>
+          </form>
+        ) : (
+          <p className="text-sm text-slate-400">
+            Primero crea al menos un grado en Configuración para poder agregar salones aquí.
+          </p>
+        )}
+      </Card>
 
       {(!classrooms || classrooms.length === 0) && (
         <Card className="py-12 text-center text-slate-500">
-          No hay salones creados aún. Ve a Configuración para agregarlos.
+          No hay salones creados aún. Usa el formulario de arriba para agregar el primero.
         </Card>
       )}
 
@@ -61,9 +92,9 @@ export default async function JornadasPage({ params }: { params: { projectId: st
                 const grade = grades?.find((g) => g.id === classroom.grade_id);
                 const counts = countsFor(classroom.id);
                 return (
-                  <Link key={classroom.id} href={`/p/${projectId}/jornadas/${classroom.id}`}>
-                    <Card className="h-full transition-shadow hover:shadow-md">
-                      <CardTitle className="mb-1">
+                  <Card key={classroom.id} className="flex h-full flex-col justify-between">
+                    <Link href={`/p/${projectId}/jornadas/${classroom.id}`}>
+                      <CardTitle className="mb-1 hover:text-brand-600">
                         {classroom.name}
                         <span className="ml-1 text-slate-400">({grade?.name})</span>
                       </CardTitle>
@@ -71,8 +102,36 @@ export default async function JornadasPage({ params }: { params: { projectId: st
                         {counts.programados} programados · {counts.fotografiados} fotografiados ·{" "}
                         {counts.ausentes} ausentes
                       </p>
-                    </Card>
-                  </Link>
+                    </Link>
+                    <div className="mt-3 flex items-end justify-between gap-2 border-t border-slate-100 pt-3">
+                      <form
+                        action={updateClassroomDate.bind(null, projectId, classroom.id)}
+                        className="flex items-end gap-2"
+                      >
+                        <Input
+                          name="photo_date"
+                          label="Fecha"
+                          type="date"
+                          defaultValue={classroom.photo_date ?? ""}
+                          className="max-w-[150px]"
+                        />
+                        <button
+                          type="submit"
+                          className="pb-2 text-xs text-brand-600 hover:underline"
+                        >
+                          Guardar
+                        </button>
+                      </form>
+                      <form action={deleteClassroom.bind(null, projectId, classroom.id)}>
+                        <button
+                          type="submit"
+                          className="pb-2 text-xs text-status-danger hover:underline"
+                        >
+                          Eliminar
+                        </button>
+                      </form>
+                    </div>
+                  </Card>
                 );
               })}
             </div>
