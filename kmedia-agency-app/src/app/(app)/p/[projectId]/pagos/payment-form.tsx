@@ -47,13 +47,8 @@ export function PaymentForm({
           required
         />
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <Select name="method" label="Método" defaultValue="cash">
-          <option value="cash">Efectivo</option>
-          <option value="yappy">Yappy</option>
-        </Select>
-        <Input name="reference" label="Referencia (obligatoria para Yappy)" />
-      </div>
+      <input type="hidden" name="method" value="cash" />
+      <Input name="reference" label="Referencia (opcional)" />
       <Input name="observation" label="Observación (opcional)" />
       {state.error && (
         <p className="rounded-lg bg-status-dangerBg px-3 py-2 text-sm text-status-danger">
